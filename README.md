@@ -2,21 +2,21 @@
 
 This plugin uses GlusterFS as distributed data storage for containers.
 
-Unlike original implementations, it works in **Swarm mode**.
+Unlike original implementations, it works in **Swarm mode**.  
 It uses the new (1.13+) **managed plugin subsystem** https://docs.docker.com/engine/extend/.
 
 ## Installation
 
-The plugin requires an API server on your Gluster bricks.
-Use https://github.com/aravindavk/glusterfs-rest instructions for manual installation.
-Ansible installation for the API can be found here : <TODO>
+The plugin requires an API server on your Gluster bricks.  
+Use https://github.com/aravindavk/glusterfs-rest instructions for manual installation.  
+Ansible installation for the API can be found here : https://github.com/hjdr4/ansible-glusterrestd
 
 Then on your Docker nodes:
 ```
 docker plugin install hjdr4plugins/docker-volume-glusterfs servers=srv1:srv2 [parameter=value]
 ```
-where srv1 and srv2 are Gluster bricks you want to use.
-You can put from 1 to as many servers you want.
+where srv1 and srv2 are Gluster bricks you want to use.  
+You can put from 1 to as many servers you want.  
 The driver will try to reach the API for every node in the order your provide until someone answers, or throw an error if no server is reachable. 
 
 Valid parameters:defaults are :
@@ -49,7 +49,7 @@ You will need `go`, `make`, `sudo` and `docker`.
 
 See https://docs.docker.com/engine/extend/#developing-a-plugin for complete instructions.
 
-***remark***: the registry you use must NOT have regular images, Docker needs a dedicated plugin repository. If you use DockerHub, just create another account.
+***Remark***: the registry you use must NOT have regular images, Docker needs a dedicated plugin repository. If you use DockerHub, just create another account.
 
 ## LICENSE
 
