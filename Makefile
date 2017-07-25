@@ -46,35 +46,34 @@ deps:
 	go get -d golang.org/x/sys/windows
 .PHONY: deps
 
-install: guard-VERSION build
-	$(call msg,"Install docker-volume-glusterfs")
-	mkdir -p /usr/local/bin/
-	cp docker-volume-glusterfs /usr/local/bin/
-.PHONY:	install
+plugin: guard-IMAGE build
+	mkdir -p content
+	cp -f docker-volume-glusterfs content/
+	docker build -t ${IMAGE} .
+	$(eval ID:=$(shell docker create ${IMAGE} true)) 
+	mkdir -p plugin/rootfs
+	docker export $(ID) | sudo tar -x -C plugin/rootfs
+	cp config.json plugin/
 
-uninstall:
-	$(call msg,"Uninstall docker-volume-glusterfs")
-	rm -f /usr/local/bin/docker-volume-glusterfs
-.PHONY:	uninstall
+plugin-install: guard-IMAGE guard-SERVERS
+	sudo docker plugin create ${IMAGE} plugin/	
+	docker plugin set ${IMAGE} servers=${SERVERS}
+	docker plugin enable ${IMAGE}
+
 
 test: deps
 	$(call msg,"Run tests")
 	$(FLAGS_all) go test $(wildcard ../*.go)
 .PHONY: test
 
-clean:
+clean: guard-IMAGE
 	$(call msg,"Clean directory")
 	rm -f docker-volume-glusterfs
-	rm -rf dist
+	rm -rf content
+	sudo rm -rf plugin
+	docker plugin disable ${IMAGE} -f || true
+	docker plugin rm ${IMAGE} -f || true
 .PHONY: clean
-
-build-all: deps guard-VERSION $(foreach PLATFORM,$(PLATFORMS),dist/$(PLATFORM)/.built)
-.PHONY: build-all
-
-dist: guard-VERSION build-all \
-$(foreach PLATFORM,$(PLATFORMS),dist/docker-volume-glusterfs-$(VERSION)-$(PLATFORM).zip) \
-$(foreach PLATFORM,$(PLATFORMS),dist/docker-volume-glusterfs-$(VERSION)-$(PLATFORM).tar.gz)
-.PHONY:	dist
 
 release: guard-VERSION dist
 	$(call msg,"Create and push release")
@@ -84,25 +83,6 @@ release: guard-VERSION dist
 
 
 ################################################################################
-
-dist/%/.built:
-	$(call msg,"Build binary for $*")
-	rm -f $@
-	mkdir -p $(dir $@)
-	$(FLAGS_$*) go build -ldflags "-X main.Version=${VERSION} -X main.Build=${BUILD}" -o dist/$*/docker-volume-glusterfs$(EXTENSION_$*) $(wildcard ../*.go)
-	touch $@
-
-dist/docker-volume-glusterfs-$(VERSION)-%.zip:
-	$(call msg,"Create ZIP for $*")
-	rm -f $@
-	mkdir -p $(dir $@)
-	zip -j $@ dist/$*/* -x .built
-
-dist/docker-volume-glusterfs-$(VERSION)-%.tar.gz:
-	$(call msg,"Create TAR for $*")
-	rm -f $@
-	mkdir -p $(dir $@)
-	tar czf $@ -C dist/$* --exclude=.built .
 
 guard-%:
 	@ if [ "${${*}}" = "" ]; then \

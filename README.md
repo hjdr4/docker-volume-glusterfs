@@ -2,56 +2,54 @@
 
 This plugin uses GlusterFS as distributed data storage for containers.
 
-[![Release](https://img.shields.io/github/release/amarkwalder/docker-volume-glusterfs.svg)](https://github.com/amarkwalder/docker-volume-glusterfs/releases/latest)
-[![TravisCI](https://travis-ci.org/amarkwalder/docker-volume-glusterfs.svg)](https://travis-ci.org/amarkwalder/docker-volume-glusterfs)
+Unlike original implementations, it works in **Swarm mode**.
+It uses the new (1.13+) **managed plugin subsystem** https://docs.docker.com/engine/extend/.
 
 ## Installation
 
-Using go (until we get proper binaries):
+The plugin requires an API server on your Gluster bricks.
+Use https://github.com/aravindavk/glusterfs-rest instructions for manual installation.
+Ansible installation for the API can be found here : <TODO>
 
+Then on your Docker nodes:
 ```
-$ go get github.com/amarkwalder/docker-volume-glusterfs
+docker plugin install hjdr4plugins/docker-volume-glusterfs servers=srv1:srv2 [parameter=value]
 ```
+where srv1 and srv2 are Gluster bricks you want to use.
+You can put from 1 to as many servers you want.
+The driver will try to reach the API for every node in the order your provide until someone answers, or throw an error if no server is reachable. 
+
+Valid parameters:defaults are :
+- servers:"" (this is **required**) 
+- login:docker
+- password:docker
+- port:9000
+- base:/var/lib/gluster/bricks
 
 ## Usage
 
-This plugin doesn't create volumes in your GlusterFS cluster yet, so you'll have to create them yourself first.
-
-1 - Start the plugin using this command:
-
+This plugin is capable of creating and removing volumes.
 ```
-$ sudo docker-volume-glusterfs -servers gfs-1:gfs-2:gfs-3
+docker volume create --driver=hjdr4plugins/docker-volume-glusterfs myGlusterVolume
 ```
 
-We use the flag `-servers` to specify where to find the GlusterFS servers. The server names are separated by colon.
-
-2 - Start your docker containers with the option `--volume-driver=glusterfs` and use the first part of `--volume` to specify the remote volume that you want to connect to:
-
 ```
-$ sudo docker run --volume-driver glusterfs --volume datastore:/data alpine touch /data/helo
+docker run --rm --volume-driver=hjdr4plugins/docker-volume-glusterfs --volume myGlusterVolume:/data alpine touch /data/helo
 ```
 
-See this video for a slightly longer usage explanation:
+## Building your own version
 
-https://youtu.be/SVtsT9WVujs
+You will need `go`, `make`, `sudo` and `docker`.
 
-### Volume creation on demand
+- fork this project and go into its directory
+- set env variables : `export VERSION="<yourVersion>";export IMAGE="<yourImage>"; export SERVERS="<yourServers>"`
+- make a clean install : `make clean plugin plugin-install`
+- do your tests
+- push the plugin to the registry: `docker plugin push <yourImage>`
 
-This extension can create volumes on the remote cluster if you install https://github.com/aravindavk/glusterfs-rest in one of the nodes of the cluster.
+See https://docs.docker.com/engine/extend/#developing-a-plugin for complete instructions.
 
-You need to set two extra flags when you start the extension if you want to let containers to create their volumes on demand:
-
-- rest: is the URL address to the remote api.
-- gfs-base: is the base path where the volumes will be created.
-
-This is an example of the command line to start the plugin:
-
-```
-$ docker-volume-glusterfs -servers gfs-1:gfs2 \
-    -rest http://gfs-1:9000 -gfs-base /var/lib/gluster/volumes
-```
-
-These volumes are replicated among all the peers in the cluster that you specify in the `-servers` flag.
+***remark***: the registry you use must NOT have regular images, Docker needs a dedicated plugin repository. If you use DockerHub, just create another account.
 
 ## LICENSE
 

@@ -1,0 +1,58 @@
+{
+	"description": "GlusterFS volume driver for Docker",
+	"documentation": "https://docs.docker.com/engine/extend/plugins/",
+	"entrypoint": ["/docker-volume-glusterfs"],
+	"network": {
+		   "type": "host"
+		   },
+	"interface" : {
+		   "types": ["docker.volumedriver/1.0"],
+		   "socket": "glusterfs.sock"
+	},
+        "env": [
+          {
+              "name": "servers",
+              "settable": [
+                  "value"
+              ],
+              "value": ""
+          },
+		  {
+              "name": "login",
+              "settable": [
+                  "value"
+              ],
+              "value": ""
+          },
+		  {
+              "name": "password",
+              "settable": [
+                  "value"
+              ],
+              "value": ""
+          },
+		  {
+              "name": "port",
+              "settable": [
+                  "value"
+              ],
+              "value": ""
+          },
+		  {
+              "name": "base",
+              "settable": [
+                  "value"
+              ],
+              "value": ""
+          }
+        ],
+	"linux": {
+		"capabilities": ["CAP_SYS_ADMIN"],
+		"devices": [
+            		{
+                		"path": "/dev/fuse"
+            		}
+        	]
+	},
+	"propagatedMount":"/var/lib/docker-volumes/_glusterfs"
+}

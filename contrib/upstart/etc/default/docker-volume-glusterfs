@@ -1,3 +1,0 @@
-GLUSTERFS_DRIVER_OPTS='
--servers server-01:server-02
-'

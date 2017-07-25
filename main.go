@@ -7,6 +7,8 @@ import (
 	"path/filepath"
 	"strings"
 
+	"strconv"
+
 	"github.com/docker/go-plugins-helpers/volume"
 )
 
@@ -14,43 +16,58 @@ const glusterfsID = "_glusterfs"
 
 var (
 	Version string
-	Build string
+	Build   string
 )
 
 var (
-	version     = flag.Bool("version", false, "Version of Docker Volumen GlusterFS")
-	defaultDir  = filepath.Join(volume.DefaultDockerRootDirectory, glusterfsID)
-	serversList = flag.String("servers", "", "List of glusterfs servers")
-	restAddress = flag.String("rest", "", "URL to glusterfsrest api")
-	gfsBase     = flag.String("gfs-base", "/mnt/gfs", "Base directory where volumes are created in the cluster")
-	root        = flag.String("root", defaultDir, "GlusterFS volumes root directory")
+	version       = flag.Bool("version", false, "Version of Docker Volume GlusterFS")
+	serversList   = os.Getenv("servers")
+	mountPath     = filepath.Join(volume.DefaultDockerRootDirectory, glusterfsID)
+	login         = os.Getenv("login")
+	password      = os.Getenv("password")
+	port, portErr = strconv.Atoi(os.Getenv("port"))
+	base          = os.Getenv("base")
 )
 
 func main() {
-	var Usage = func() {
-		fmt.Fprintf(os.Stderr, "Usage: %s [options]\n", os.Args[0])
-		flag.PrintDefaults()
-	}
+	banner()
 
 	flag.Parse()
+
 	if *version {
-		banner()
 		os.Exit(0)
 	}
-	if len(*serversList) == 0 {
-		Usage()
+
+	if serversList == "" {
+		fmt.Println("ERROR : you must set servers env variable, delimited by ':'")
 		os.Exit(1)
 	}
 
-	servers := strings.Split(*serversList, ":")
+	if login == "" {
+		login = "docker"
+	}
 
-	d := newGlusterfsDriver(*root, *restAddress, *gfsBase, servers)
+	if password == "" {
+		password = "docker"
+	}
+
+	if portErr != nil {
+		port = 9000
+	}
+
+	if base == "" {
+		base = "/var/lib/gluster/bricks"
+	}
+
+	servers := strings.Split(serversList, ":")
+	d := newGlusterfsDriver(mountPath, servers, login, password, port, base)
+
 	h := volume.NewHandler(d)
 	fmt.Println(h.ServeUnix("glusterfs", 0))
 }
 
 func banner() {
-	fmt.Println("       __           __                            __                   ") 
+	fmt.Println("       __           __                            __                   ")
 	fmt.Println("  ____/ /___  _____/ /_____  _____   _   ______  / /_  ______ ___  ___ ")
 	fmt.Println(" / __  / __ \\/ ___/ //_/ _ \\/ ___/  | | / / __ \\/ / / / / __ `__ \\/ _ \\")
 	fmt.Println("/ /_/ / /_/ / /__/ ,< /  __/ /      | |/ / /_/ / / /_/ / / / / / /  __/")
@@ -66,4 +83,3 @@ func banner() {
 	fmt.Println("Build   : ", Build)
 	fmt.Println()
 }
-
