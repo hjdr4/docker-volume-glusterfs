@@ -32,6 +32,8 @@ This plugin is capable of creating and removing volumes.
 ```
 docker volume create --driver=hjdr4plugins/docker-volume-glusterfs myGlusterVolume
 ```
+For now, volumes are created as 1xN replicated. If you want to use another kind of volume, create it yourself before using it on containers.  
+
 
 ```
 docker run --rm --volume-driver=hjdr4plugins/docker-volume-glusterfs --volume myGlusterVolume:/data alpine touch /data/helo
