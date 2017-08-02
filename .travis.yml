@@ -1,0 +1,16 @@
+---
+  language: go
+  sudo: false
+  notifications:
+    email: false
+  go:
+    - master
+  install:
+    - go get github.com/golang/lint/golint
+    - go get github.com/ddliu/go-httpclient
+    - go get github.com/docker/go-plugins-helpers/volume
+  script:
+    - test -z "$(go vet ./... | grep -v vendor/ | tee /dev/stderr)"
+    - test -z "$(golint ./... | grep -v vendor/ | tee /dev/stderr)"
+    - test -z "$(gofmt -s -l . | grep -v vendor/ | tee /dev/stderr)"
+    - go list ./... | go test -v

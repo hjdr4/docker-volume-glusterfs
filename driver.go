@@ -27,16 +27,16 @@ type glusterfsDriver struct {
 	client  GlusterRestClient
 }
 
-func (c GlusterRestClient) deleteVolume(name string) error {
+func (g GlusterRestClient) deleteVolume(name string) error {
 	params := url.Values{"stop": {"true"}}
 	url := fmt.Sprintf(volumeRemovePath, name)
-	resp, err := c.Delete(url, params)
+	resp, err := g.Delete(url, params)
 	if err != nil {
 		return err
 	}
 	defer resp.Body.Close()
 
-	checked := responseCheckHttpClient(resp)
+	checked := responseCheckHTTPClient(resp)
 	if checked != nil {
 		return checked
 	}
@@ -44,10 +44,10 @@ func (c GlusterRestClient) deleteVolume(name string) error {
 	return nil
 }
 
-func (c GlusterRestClient) createVolume(name string) error {
-	bricks := make([]string, len(c.servers))
-	for i, p := range c.servers {
-		bricks[i] = fmt.Sprintf("%s:%s", p, filepath.Join(c.base, name))
+func (g GlusterRestClient) createVolume(name string) error {
+	bricks := make([]string, len(g.servers))
+	for i, p := range g.servers {
+		bricks[i] = fmt.Sprintf("%s:%s", p, filepath.Join(g.base, name))
 	}
 
 	params := url.Values{
@@ -57,11 +57,11 @@ func (c GlusterRestClient) createVolume(name string) error {
 		"force":     {"true"},
 	}
 
-	if len(c.servers) > 1 {
-		params.Add("replica", strconv.Itoa(len(c.servers)))
+	if len(g.servers) > 1 {
+		params.Add("replica", strconv.Itoa(len(g.servers)))
 	}
 
-	resp, err := c.PostForm(fmt.Sprintf(volumeCreatePath, name), params)
+	resp, err := g.PostForm(fmt.Sprintf(volumeCreatePath, name), params)
 	if err != nil {
 		return err
 	}

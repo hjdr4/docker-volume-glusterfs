@@ -1,5 +1,7 @@
 # Docker volume plugin for GlusterFS
 
+[![TravisCI](https://travis-ci.org/hjdr4/docker-volume-glusterfs.svg)](https://travis-ci.org/hjdr4/docker-volume-glusterfs)  [![Go Report Card](https://goreportcard.com/badge/github.com/hjdr4/docker-volume-glusterfs)](https://goreportcard.com/report/github.com/hjdr4/docker-volume-glusterfs) 
+
 This plugin uses GlusterFS as distributed data storage for containers.
 
 Unlike original implementations, it works in **Swarm mode**.  

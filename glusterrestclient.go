@@ -67,7 +67,7 @@ func responseCheck(resp *http.Response) error {
 	return nil
 }
 
-func responseCheckHttpClient(resp *httpclient.Response) error {
+func responseCheckHTTPClient(resp *httpclient.Response) error {
 	var p response
 	err := json.NewDecoder(resp.Body).Decode(&p)
 	if err != nil {
@@ -81,12 +81,12 @@ func responseCheckHttpClient(resp *httpclient.Response) error {
 	return nil
 }
 
-//-------------------------------
-//High level stuff
+//GetAddress returns the full url to contact
 func (g GlusterRestClient) GetAddress(server string, url string) string {
 	return fmt.Sprintf("%s%s:%s%s", g.urlPrefix, server, strconv.Itoa(g.port), url)
 }
 
+//Get tries to HTTP GET on all servers
 func (g GlusterRestClient) Get(url string) (*http.Response, error) {
 	for _, server := range g.servers {
 		res, err := http.Get(g.GetAddress(server, url))
@@ -98,6 +98,7 @@ func (g GlusterRestClient) Get(url string) (*http.Response, error) {
 	return nil, fmt.Errorf("Get(): could not diag with any server")
 }
 
+//PostForm tries to POST with application/x-www-form-urlencoded format
 func (g GlusterRestClient) PostForm(url string, params url.Values) (*http.Response, error) {
 	for _, server := range g.servers {
 		address := g.GetAddress(server, url)
@@ -110,6 +111,7 @@ func (g GlusterRestClient) PostForm(url string, params url.Values) (*http.Respon
 	return nil, fmt.Errorf("PostForm(): could not diag with any server")
 }
 
+//Delete tries to DELETE with application/x-www-form-urlencoded format
 func (g GlusterRestClient) Delete(url string, params url.Values) (*httpclient.Response, error) {
 	for _, server := range g.servers {
 		client := httpclient.WithHeader("Content-Type", "application/x-www-form-urlencoded")
@@ -126,8 +128,8 @@ func (g GlusterRestClient) Delete(url string, params url.Values) (*httpclient.Re
 	return nil, fmt.Errorf("Delete(): could not diag with any server")
 }
 
-func (c GlusterRestClient) listVolumes() ([]string, error) {
-	res, err := c.Get(volumesPath)
+func (g GlusterRestClient) listVolumes() ([]string, error) {
+	res, err := g.Get(volumesPath)
 	if err != nil {
 		return nil, err
 	}
@@ -148,8 +150,8 @@ func (c GlusterRestClient) listVolumes() ([]string, error) {
 	return ret, nil
 }
 
-func (c GlusterRestClient) volumeExists(name string) (bool, error) {
-	res, err := c.Get(fmt.Sprintf(volumeGetPath, name))
+func (g GlusterRestClient) volumeExists(name string) (bool, error) {
+	res, err := g.Get(fmt.Sprintf(volumeGetPath, name))
 	if err != nil {
 		return false, err
 	}
@@ -166,7 +168,7 @@ func (c GlusterRestClient) volumeExists(name string) (bool, error) {
 	return true, nil
 }
 
-//API
+//GlusterRestClient struct
 type GlusterRestClient struct {
 	servers   []string
 	urlPrefix string

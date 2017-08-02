@@ -15,8 +15,10 @@ import (
 const glusterfsID = "_glusterfs"
 
 var (
+	//Version comes from Makefile
 	Version string
-	Build   string
+	//Build comes from Makefile
+	Build string
 )
 
 var (
