@@ -11,7 +11,8 @@ It uses the new (1.13+) **managed plugin subsystem** https://docs.docker.com/eng
 
 The plugin requires an API server on your Gluster bricks.  
 Use https://github.com/aravindavk/glusterfs-rest instructions for manual installation.  
-Ansible installation for the API can be found here : https://github.com/hjdr4/ansible-glusterrestd
+Ansible installation for the API can be found here : https://github.com/hjdr4/ansible-glusterrestd  
+Docker container can be found here : https://github.com/hjdr4/docker-glusterrestd
 
 Then on your Docker nodes:
 ```
