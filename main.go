@@ -1,13 +1,12 @@
 package main
 
 import (
-	"flag"
 	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
 
-	"strconv"
+	"flag"
 
 	"github.com/docker/go-plugins-helpers/volume"
 )
@@ -22,13 +21,13 @@ var (
 )
 
 var (
-	version       = flag.Bool("version", false, "Version of Docker Volume GlusterFS")
-	serversList   = os.Getenv("servers")
-	mountPath     = filepath.Join(volume.DefaultDockerRootDirectory, glusterfsID)
-	login         = os.Getenv("login")
-	password      = os.Getenv("password")
-	port, portErr = strconv.Atoi(os.Getenv("port"))
-	base          = os.Getenv("base")
+	version     = flag.Bool("version", false, "Version of docker-volume-glusterfs")
+	root        = filepath.Join(volume.DefaultDockerRootDirectory, glusterfsID)
+	login       = flag.String("login", "docker", "login")
+	password    = flag.String("password", "docker", "pwd")
+	port        = flag.Int("port", 9000, "port")
+	base        = flag.String("base", "/var/lib/gluster/bricks", "GlusterFS volumes root directory")
+	serversList = flag.String("servers", "", "List of glusterfs servers")
 )
 
 func main() {
@@ -40,29 +39,14 @@ func main() {
 		os.Exit(0)
 	}
 
-	if serversList == "" {
+	if *serversList == "" {
 		fmt.Println("ERROR : you must set servers env variable, delimited by ':'")
 		os.Exit(1)
 	}
 
-	if login == "" {
-		login = "docker"
-	}
+	servers := strings.Split(*serversList, ":")
 
-	if password == "" {
-		password = "docker"
-	}
-
-	if portErr != nil {
-		port = 9000
-	}
-
-	if base == "" {
-		base = "/var/lib/gluster/bricks"
-	}
-
-	servers := strings.Split(serversList, ":")
-	d := newGlusterfsDriver(mountPath, servers, login, password, port, base)
+	d := newGlusterfsDriver(root, servers, *login, *password, *port, *base)
 
 	h := volume.NewHandler(d)
 	fmt.Println(h.ServeUnix("glusterfs", 0))

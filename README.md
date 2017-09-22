@@ -15,7 +15,7 @@ Ansible installation for the API can be found here : https://github.com/hjdr4/an
 
 Then on your Docker nodes:
 ```
-docker plugin install hjdr4plugins/docker-volume-glusterfs servers=srv1:srv2 [parameter=value]
+docker plugin install hjdr4plugins/docker-volume-glusterfs args="-servers=srv1:srv2 [-parameter=value]"
 ```
 where srv1 and srv2 are Gluster bricks you want to use.  
 You can put from 1 to as many servers you want.  
